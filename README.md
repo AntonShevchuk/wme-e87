@@ -5,5 +5,5 @@ Solves the inconsistent direction problem
 
 ## Links
 Author homepage: http://anton.shevchuk.name/  
-Script homepage: https://github.com/AntonShevchuk/wme-e95/  
-GreasyFork: https://greasyfork.org/uk/scripts/382614-wme-e95  
+Script homepage: https://github.com/AntonShevchuk/wme-e87/  
+GreasyFork: https://greasyfork.org/uk/scripts/456886-wme-e87-inconsistent-direction  
