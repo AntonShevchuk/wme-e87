@@ -162,6 +162,7 @@
 
         let buttonToForward = document.createElement('button')
         buttonToForward.type = 'button'
+        buttonToForward.title = I18n.t(NAME).buttons.toggle
         buttonToForward.className = 'waze-btn waze-btn-small waze-btn-white e87 e87-forward'
         buttonToForward.innerHTML = I18n.t(NAME).buttons.forward + ' (' + result.reverse.length + ')'
         buttonToForward.onclick = (e) => {
@@ -170,6 +171,7 @@
         }
         let buttonToReverse = document.createElement('button')
         buttonToReverse.type = 'button'
+        buttonToReverse.title = I18n.t(NAME).buttons.toggle
         buttonToReverse.className = 'waze-btn waze-btn-small waze-btn-white e87 e87-reverse'
         buttonToReverse.innerHTML = I18n.t(NAME).buttons.reverse + ' (' + result.forward.length + ')'
         buttonToReverse.onclick = (e) => {
