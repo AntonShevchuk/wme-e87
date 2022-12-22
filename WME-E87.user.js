@@ -38,10 +38,12 @@
   // Translations
   const TRANSLATION = {
     'en': {
-      title: 'Direction',
+      title: 'Direction →',
       description: 'Plugin WME E87 solves the inconsistent direction problem',
       buttons: {
-        toggle: 'Reverse',
+        toggle: 'Change direction',
+        forward: 'A → B',
+        reverse: 'B → A',
       },
     },
     'uk': {
@@ -49,6 +51,8 @@
       description: 'Плагін WME E87 для вирішиння проблеми різно направленних вулиць',
       buttons: {
         toggle: 'Змінити напрямок',
+        forward: 'A → B',
+        reverse: 'B → A',
       },
     },
     'ru': {
@@ -56,6 +60,8 @@
       description: 'Плагин WME E87 для решения проблемы разнонаправленных улиц',
       buttons: {
         toggle: 'Изменить направление',
+        forward: 'A → B',
+        reverse: 'B → A',
       },
     }
   }
@@ -65,7 +71,7 @@
     'button.waze-btn.e87:hover { background: #ffffff; transition: background-color 100ms linear; box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.1), inset 0 0 100px 100px rgba(255, 255, 255, 0.3); } ' +
     'button.waze-btn.e87:focus { background: #f2f4f7; } ' +
     'button.e87-forward, button.e87-reverse { margin: 2px 8px; }' +
-    'div.e87-container { display: flex; } ' +
+    'div.e87-container { display: flex; flex: auto; justify-content: space-evenly; } ' +
     'p.e87-info { border-top: 1px solid #ccc; color: #777; font-size: x-small; margin-top: 15px; padding-top: 10px; text-align: center; }'
 
   WMEUI.addTranslation(NAME, TRANSLATION)
@@ -113,7 +119,7 @@
      * Init button for selection of the segment
      * @param buttons
      */
-    init(buttons) {
+    init (buttons) {
       buttons.toggle.callback = (e) => {
         e.preventDefault()
         this.invert(WME.getSelectedSegment().getID())
@@ -157,7 +163,7 @@
         let buttonToForward = document.createElement('button')
         buttonToForward.type = 'button'
         buttonToForward.className = 'waze-btn waze-btn-small waze-btn-white e87 e87-forward'
-        buttonToForward.innerText = 'Make all forward (' + result.reverse.length + ')'
+        buttonToForward.innerHTML = I18n.t(NAME).buttons.forward + ' (' + result.reverse.length + ')'
         buttonToForward.onclick = (e) => {
           e.preventDefault()
           result.reverse.forEach(el => this.invert(el))
@@ -165,7 +171,7 @@
         let buttonToReverse = document.createElement('button')
         buttonToReverse.type = 'button'
         buttonToReverse.className = 'waze-btn waze-btn-small waze-btn-white e87 e87-reverse'
-        buttonToReverse.innerText = 'Make all reverse (' + result.forward.length + ')'
+        buttonToReverse.innerHTML = I18n.t(NAME).buttons.reverse + ' (' + result.forward.length + ')'
         buttonToReverse.onclick = (e) => {
           e.preventDefault()
           result.forward.forEach(el => this.invert(el))
@@ -176,7 +182,8 @@
         container.append(buttonToForward)
         container.append(buttonToReverse)
 
-        $('wz-alert.sidebar-alert.inconsistent-direction-alert .sidebar-alert-content').after(container)
+        $('wz-alert.sidebar-alert.inconsistent-direction-alert .sidebar-alert-content')
+          .after(container)
       }
     }
 
@@ -225,8 +232,12 @@
       let attributes = {}
       attributes.fwdDirection = segment.attributes.revDirection
       attributes.revDirection = segment.attributes.fwdDirection
-      // attributes.fwdTurnsLocked = segment.revTurnsLocked // ???
-      // attributes.revTurnsLocked = segment.fwdTurnsLocked // ???
+      let fwdTurnsLocked = segment.attributes.fwdTurnsLocked
+      let revTurnsLocked = segment.attributes.revTurnsLocked
+      // attributes.fwdTurnsLocked = segment.attributes.revTurnsLocked // ???
+      // attributes.revTurnsLocked = segment.attributes.fwdTurnsLocked // ???
+      // segment.setAttribute("revTurnsLocked", segment.attributes.fwdTurnsLocked)}
+      // segment.setAttribute("fwdTurnsLocked", segment.attributes.revTurnsLocked)}
       attributes.fwdMaxSpeed = segment.attributes.revMaxSpeed
       attributes.revMaxSpeed = segment.attributes.fwdMaxSpeed
       attributes.fwdMaxSpeedUnverified = segment.attributes.revMaxSpeedUnverified
@@ -297,7 +308,9 @@
       }
 
       // disconnect the segment
-      W.model.actionManager.add(new WazeActionMultiAction([new WazeActionDisconnectSegment(segment, fromNode), new WazeActionDisconnectSegment(segment, toNode)]))
+      let disconnect = new WazeActionMultiAction([new WazeActionDisconnectSegment(segment, fromNode), new WazeActionDisconnectSegment(segment, toNode)])
+      disconnect._description = I18n.t('save.changes_log.actions.DisconnectSegment.default')
+      W.model.actionManager.add(disconnect)
 
       // update geometry of the segment
       W.model.actionManager.add(new WazeActionUpdateSegmentGeometry(segment, segment.geometry, geometry))
@@ -306,10 +319,18 @@
       W.model.actionManager.add(new WazeActionUpdateObject(segment, attributes))
 
       // connect the segment
-      W.model.actionManager.add(new WazeActionMultiAction([new WazeActionConnectSegment(toNode, segment), new WazeActionConnectSegment(fromNode, segment)]))
+      let connect = new WazeActionMultiAction([new WazeActionConnectSegment(toNode, segment), new WazeActionConnectSegment(fromNode, segment)])
+      connect._description = I18n.t('save.changes_log.actions.ConnectSegment.default')
+      W.model.actionManager.add(connect)
 
-      W.model.actionManager.add(new WazeActionModifyAllConnections(segment.getToNode(), true));
-      W.model.actionManager.add(new WazeActionModifyAllConnections(segment.getFromNode(), true));
+      // update Turn's attributes
+      segment.setAttribute('fwdTurnsLocked', revTurnsLocked)
+      segment.setAttribute('revTurnsLocked', fwdTurnsLocked)
+      // W.model.actionManager.add(new WazeActionUpdateObject(segment, segment.getAttributes()))
+
+      // allow all connections
+      // W.model.actionManager.add(new WazeActionModifyAllConnections(segment.getToNode(), true));
+      // W.model.actionManager.add(new WazeActionModifyAllConnections(segment.getFromNode(), true));
 
       this.applyTurns(fromConnections)
       this.applyTurns(toConnections)
@@ -333,15 +354,17 @@
           case 1 :
             turn = WazeModelGraphTurnData.create()
             turn = turn.withState(segment.turnData.state)
-            turn = turn.withRestrictions(segment.turnData.restrictions)
-            turn = turn.withInstructionOpcode(segment.turnData.instructionOpcode)
-            turn = turn.withLanes(segment.turnData.lanes)
+              .withRestrictions(segment.turnData.restrictions)
+              .withInstructionOpcode(segment.turnData.instructionOpcode)
+              .withLanes(segment.turnData.lanes)
 
             actions.push(new WazeModelGraphActionsSetTurn(W.model.getTurnGraph(), segment.withTurnData(turn)))
             break
         }
       }
-      W.model.actionManager.add(new WazeActionMultiAction(actions))
+      let multiAction = new WazeActionMultiAction(actions)
+      multiAction._description = I18n.t('save.changes_log.actions.SetTurn.update')
+      W.model.actionManager.add(multiAction)
     }
   }
 
