@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         WME E87 Inconsistent direction
-// @version      0.0.1
+// @version      0.0.2
 // @description  Solves the inconsistent direction problem
 // @license      MIT License
 // @author       Anton Shevchuk
@@ -41,32 +41,30 @@
       title: 'Direction',
       description: 'Plugin WME E87 solves the inconsistent direction problem',
       buttons: {
-        A: 'A → B',
-        B: 'B → A',
+        toggle: 'Reverse',
       },
     },
     'uk': {
       title: 'Напрямки →',
       description: 'Плагін WME E87 для вирішиння проблеми різно направленних вулиць',
       buttons: {
-        A: 'A → B',
-        B: 'B → A',
+        toggle: 'Змінити напрямок',
       },
     },
     'ru': {
       title: 'Направления →',
       description: 'Плагин WME E87 для решения проблемы разнонаправленных улиц',
       buttons: {
-        A: 'A → B',
-        B: 'B → A',
+        toggle: 'Изменить направление',
       },
     }
   }
 
   const STYLE =
-    'button.waze-btn.e87 { background: #f2f4f7; border: 1px solid #ccc; margin: 2px 8px; } ' +
+    'button.waze-btn.e87 { background: #f2f4f7; border: 1px solid #ccc; margin: 2px; } ' +
     'button.waze-btn.e87:hover { background: #ffffff; transition: background-color 100ms linear; box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.1), inset 0 0 100px 100px rgba(255, 255, 255, 0.3); } ' +
     'button.waze-btn.e87:focus { background: #f2f4f7; } ' +
+    'button.e87-forward, button.e87-reverse { margin: 2px 8px; }' +
     'div.e87-container { display: flex; } ' +
     'p.e87-info { border-top: 1px solid #ccc; color: #777; font-size: x-small; margin-top: 15px; padding-top: 10px; text-align: center; }'
 
@@ -74,14 +72,9 @@
   WMEUI.addStyle(STYLE)
 
   const BUTTONS = {
-    A: {
-      title: I18n.t(NAME).buttons.A,
-      description: I18n.t(NAME).buttons.A,
-      shortcut: '',
-    },
-    B: {
-      title: I18n.t(NAME).buttons.B,
-      description: I18n.t(NAME).buttons.B,
+    toggle: {
+      title: I18n.t(NAME).buttons.toggle,
+      description: I18n.t(NAME).buttons.toggle,
       shortcut: '',
     },
   }
@@ -90,13 +83,13 @@
   const SETTINGS = {}
 
   class E87 extends WMEBase {
-    /**
-     * Initial UI elements
-     * @param {Object} buttons
-     */
-    init (buttons) {
+    constructor (name) {
+      super(name)
+
       /** @type {WMEUIHelper} */
       this.helper = new WMEUIHelper(this.name)
+
+      this.panel = this.helper.createPanel(I18n.t(name).title)
 
       /** @type {WMEUIHelperTab} */
       this.tab = this.helper.createTab(
@@ -117,6 +110,18 @@
     }
 
     /**
+     * Init button for selection of the segment
+     * @param buttons
+     */
+    init(buttons) {
+      buttons.toggle.callback = (e) => {
+        e.preventDefault()
+        this.invert(WME.getSelectedSegment().getID())
+      }
+      this.panel.addButtons(buttons)
+    }
+
+    /**
      * Handler for `segment.wme` event
      * @param {jQuery.Event} event
      * @param {HTMLElement} element
@@ -125,6 +130,7 @@
      */
     onSegment (event, element, model) {
       this.log('Selected one segment')
+      element.prepend(this.panel.html())
     }
 
     /**
@@ -137,14 +143,20 @@
     onSegments (event, element, models) {
       this.log('Check selected segments')
 
-      let result = this.detect(W.selectionManager.getReversedSegments())
+      let reversed = W.selectionManager.getReversedSegments()
+
+      if (reversed.numReversed === 0) {
+        return
+      }
+
+      let result = this.detect(reversed)
 
       if (result.forward.length && result.reverse.length) {
         this.log('Inconsistent direction detected: forward = ' + result.forward.length + ' backward = ' + result.reverse.length)
 
         let buttonToForward = document.createElement('button')
         buttonToForward.type = 'button'
-        buttonToForward.className = 'waze-btn waze-btn-small waze-btn-white e87'
+        buttonToForward.className = 'waze-btn waze-btn-small waze-btn-white e87 e87-forward'
         buttonToForward.innerText = 'Make all forward (' + result.reverse.length + ')'
         buttonToForward.onclick = (e) => {
           e.preventDefault()
@@ -152,7 +164,7 @@
         }
         let buttonToReverse = document.createElement('button')
         buttonToReverse.type = 'button'
-        buttonToReverse.className = 'waze-btn waze-btn-small waze-btn-white e87'
+        buttonToReverse.className = 'waze-btn waze-btn-small waze-btn-white e87 e87-reverse'
         buttonToReverse.innerText = 'Make all reverse (' + result.forward.length + ')'
         buttonToReverse.onclick = (e) => {
           e.preventDefault()
@@ -243,14 +255,11 @@
         // outgoing directions
         toConnections[segId] = W.model.getTurnGraph().getTurnThroughNode(fromNode, segment, W.model.segments.getObjectById(segId))
         toConnections[segId].fromVertex.direction = toConnections[segId].fromVertex.direction === 'fwd' ? 'rev' : 'fwd'
-
         // u-turn
         if (segId === id) {
           toConnections[segId].toVertex.direction = toConnections[segId].toVertex.direction === 'fwd' ? 'rev' : 'fwd'
         }
       })
-
-      console.log(onA, toConnections)
 
       let onB = {}
       let fromConnections = {}
@@ -268,8 +277,6 @@
           fromConnections[segId].toVertex.direction = fromConnections[segId].toVertex.direction === 'fwd' ? 'rev' : 'fwd'
         }
       })
-
-      console.log(onB, fromConnections)
 
       // invert the geometry of the segment
       let geometry = segment.geometry.clone()
@@ -295,8 +302,14 @@
       // update geometry of the segment
       W.model.actionManager.add(new WazeActionUpdateSegmentGeometry(segment, segment.geometry, geometry))
 
+      // update attributes
+      W.model.actionManager.add(new WazeActionUpdateObject(segment, attributes))
+
       // connect the segment
       W.model.actionManager.add(new WazeActionMultiAction([new WazeActionConnectSegment(toNode, segment), new WazeActionConnectSegment(fromNode, segment)]))
+
+      W.model.actionManager.add(new WazeActionModifyAllConnections(segment.getToNode(), true));
+      W.model.actionManager.add(new WazeActionModifyAllConnections(segment.getFromNode(), true));
 
       this.applyTurns(fromConnections)
       this.applyTurns(toConnections)
