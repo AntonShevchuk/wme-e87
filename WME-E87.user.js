@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         WME E87 Inconsistent direction
-// @version      0.0.2
+// @version      0.0.3
 // @description  Solves the inconsistent direction problem
 // @license      MIT License
 // @author       Anton Shevchuk
@@ -15,7 +15,7 @@
 // @require      https://greasyfork.org/scripts/450160-wme-bootstrap/code/WME-Bootstrap.js?version=1128320
 // @require      https://greasyfork.org/scripts/452563-wme/code/WME.js?version=1101598
 // @require      https://greasyfork.org/scripts/450221-wme-base/code/WME-Base.js?version=1129908
-// @require      https://greasyfork.org/scripts/450320-wme-ui/code/WME-UI.js?version=1128560
+// @require      https://greasyfork.org/scripts/450320-wme-ui/code/WME-UI.js?version=1132279
 // ==/UserScript==
 
 /* jshint esversion: 8 */
@@ -100,12 +100,14 @@
       /** @type {WMEUIHelperTab} */
       this.tab = this.helper.createTab(
         I18n.t(this.name).title,
-        I18n.t(this.name).description,
         {
-          'icon': '<i class="w-icon panel-header-component-icon w-icon-switch"></i>'
+          'icon': 'switch'
         }
       )
-
+      this.tab.addText(
+        'description',
+        I18n.t(this.name).description,
+      )
       this.tab.addText(
         'info',
         '<a href="' + GM_info.scriptUpdateURL + '">' + GM_info.script.name + '</a> ' + GM_info.script.version
