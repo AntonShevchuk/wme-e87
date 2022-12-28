@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         WME E87 Inconsistent direction
-// @version      0.0.3
+// @version      0.0.4
 // @description  Solves the inconsistent direction problem
 // @license      MIT License
 // @author       Anton Shevchuk
@@ -89,8 +89,8 @@
   const SETTINGS = {}
 
   class E87 extends WMEBase {
-    constructor (name) {
-      super(name)
+    constructor (name, settings = null) {
+      super(name, settings)
 
       /** @type {WMEUIHelper} */
       this.helper = new WMEUIHelper(this.name)
@@ -200,12 +200,14 @@
       let forward = [], reverse = []
 
       for (let el in segments) {
-        if (!Number.isNaN(Number.parseInt(el))) {
-          if (segments[el]) {
-            reverse.push(el)
-          } else {
-            forward.push(el)
-          }
+        el = Number.parseInt(el)
+        if (Number.isNaN(el)) {
+          continue
+        }
+        if (segments[el]) {
+          reverse.push(el)
+        } else {
+          forward.push(el)
         }
       }
 
