@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         WME E87 Inconsistent direction
-// @version      0.0.6
+// @version      0.0.7
 // @description  Solves the inconsistent direction problem
 // @license      MIT License
 // @author       Anton Shevchuk
@@ -14,8 +14,8 @@
 // @require      https://greasyfork.org/scripts/389765-common-utils/code/CommonUtils.js?version=1090053
 // @require      https://greasyfork.org/scripts/450160-wme-bootstrap/code/WME-Bootstrap.js?version=1135567
 // @require      https://greasyfork.org/scripts/452563-wme/code/WME.js?version=1101598
-// @require      https://greasyfork.org/scripts/450221-wme-base/code/WME-Base.js?version=1129908
-// @require      https://greasyfork.org/scripts/450320-wme-ui/code/WME-UI.js?version=1137009
+// @require      https://greasyfork.org/scripts/450221-wme-base/code/WME-Base.js?version=1137043
+// @require      https://greasyfork.org/scripts/450320-wme-ui/code/WME-UI.js?version=1137289
 // ==/UserScript==
 
 /* jshint esversion: 8 */
@@ -39,7 +39,7 @@
   const TRANSLATION = {
     'en': {
       title: 'Direction →',
-      description: 'Plugin WME E87 solves the inconsistent direction problem',
+      description: 'Plugin WME E87 solves the inconsistent direction problem.<br/>Choose one or more segment to change direction.',
       buttons: {
         toggle: 'Change direction',
         forward: 'A → B',
@@ -48,7 +48,7 @@
     },
     'uk': {
       title: 'Напрямки →',
-      description: 'Плагін WME E87 для вирішиння проблеми різно направленних вулиць',
+      description: 'Плагін WME E87 для вирішиння проблеми різно направленних вулиць.<br/>Оберіть один або декілька сегментів щоб застосувати зміни.',
       buttons: {
         toggle: 'Змінити напрямок',
         forward: 'A → B',
@@ -57,7 +57,7 @@
     },
     'ru': {
       title: 'Направления →',
-      description: 'Плагин WME E87 для решения проблемы разнонаправленных улиц',
+      description: 'Плагин WME E87 для решения проблемы разнонаправленных улиц.<br/>Выберите один или несколько сегментов, чтобы внести изменения.',
       buttons: {
         toggle: 'Изменить направление',
         forward: 'A → B',
@@ -101,7 +101,7 @@
       this.tab = this.helper.createTab(
         I18n.t(this.name).title,
         {
-          'icon': 'switch'
+          image: GM_info.script.icon
         }
       )
       this.tab.addText(
@@ -124,7 +124,9 @@
     init (buttons) {
       buttons.toggle.callback = (e) => {
         e.preventDefault()
-        this.invert(WME.getSelectedSegment().getID())
+        WME.getSelectedSegments().forEach(
+          segment => this.invert(segment.getID())
+        )
       }
       this.panel.addButtons(buttons)
     }
@@ -137,7 +139,6 @@
      * @return {void}
      */
     onSegment (event, element, model) {
-      this.log('Selected one segment')
       element.prepend(this.panel.html())
     }
 
@@ -149,11 +150,11 @@
      * @return {void}
      */
     onSegments (event, element, models) {
-      this.log('Check selected segments')
-
       let reversed = W.selectionManager.getReversedSegments()
 
       if (reversed.numReversed === 0) {
+        // you can reverse all selected segments
+        element.prepend(this.panel.html())
         return
       }
 
@@ -227,12 +228,8 @@
         this.log('Locked by higher rank')
         return
       }
-      console.groupCollapsed(
-        '%c' + this.name + ':%c invert segment',
-        'color: #0DAD8D; font-weight: bold',
-        'color: dimgray; font-weight: normal'
-      )
-      console.log('segment', segment)
+      this.group('invert segment ' + id)
+      this.log('segment', segment)
 
       // setup and reverse attributes
       let attributes = {}
@@ -256,7 +253,7 @@
         attributes.restrictions[i] = segment.attributes.restrictions[i].withReverseDirection()
       }
 
-      console.log('attributes', attributes)
+      this.log('attributes', attributes)
 
       let fromNode = segment.getFromNode()
       let toNode = segment.getToNode()
@@ -343,7 +340,7 @@
       this.applyTurns(onA)
       this.applyTurns(onB)
 
-      console.groupEnd()
+      this.groupEnd()
     }
 
     /**
