@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         WME E87 Inconsistent direction
-// @version      0.0.7
+// @version      0.0.8
 // @description  Solves the inconsistent direction problem
 // @license      MIT License
 // @author       Anton Shevchuk
@@ -95,26 +95,14 @@
       /** @type {WMEUIHelper} */
       this.helper = new WMEUIHelper(this.name)
 
-      this.panel = this.helper.createPanel(I18n.t(name).title)
-
       /** @type {WMEUIHelperTab} */
-      this.tab = this.helper.createTab(
-        I18n.t(this.name).title,
-        {
-          image: GM_info.script.icon
-        }
-      )
-      this.tab.addText(
-        'description',
-        I18n.t(this.name).description,
-      )
-      this.tab.addText(
-        'info',
-        '<a href="' + GM_info.scriptUpdateURL + '">' + GM_info.script.name + '</a> ' + GM_info.script.version
-      )
-
-      // Inject custom HTML to container in the WME interface
+      this.tab = this.helper.createTab(I18n.t(this.name).title, { image: GM_info.script.icon })
+      this.tab.addText('description', I18n.t(this.name).description)
+      this.tab.addText('info', '<a href="' + GM_info.scriptUpdateURL + '">' + GM_info.script.name + '</a> ' + GM_info.script.version)
       this.tab.inject()
+
+      /** @type {WMEUIHelperPanel} */
+      this.panel = this.helper.createPanel(I18n.t(name).title)
     }
 
     /**
@@ -167,19 +155,23 @@
         buttonToForward.type = 'button'
         buttonToForward.title = I18n.t(NAME).buttons.toggle
         buttonToForward.className = 'waze-btn waze-btn-small waze-btn-white e87 e87-forward'
-        buttonToForward.innerHTML = I18n.t(NAME).buttons.forward + ' (' + result.reverse.length + ')'
+        buttonToForward.innerText = I18n.t(NAME).buttons.forward + ' (' + result.reverse.length + ')'
         buttonToForward.onclick = (e) => {
           e.preventDefault()
           result.reverse.forEach(el => this.invert(el))
+          buttonToForward.innerText = I18n.t(NAME).buttons.forward + ' (0)'
+          buttonToForward.disabled = true
         }
         let buttonToReverse = document.createElement('button')
         buttonToReverse.type = 'button'
         buttonToReverse.title = I18n.t(NAME).buttons.toggle
         buttonToReverse.className = 'waze-btn waze-btn-small waze-btn-white e87 e87-reverse'
-        buttonToReverse.innerHTML = I18n.t(NAME).buttons.reverse + ' (' + result.forward.length + ')'
+        buttonToReverse.innerText = I18n.t(NAME).buttons.reverse + ' (' + result.forward.length + ')'
         buttonToReverse.onclick = (e) => {
           e.preventDefault()
           result.forward.forEach(el => this.invert(el))
+          buttonToReverse.innerText = I18n.t(NAME).buttons.reverse + ' (0)'
+          buttonToReverse.disabled = true
         }
 
         let container = document.createElement('div')
