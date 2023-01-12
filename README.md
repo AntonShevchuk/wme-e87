@@ -1,6 +1,8 @@
 # WME E87
 Solves the inconsistent direction problem
 
+> ⚠️ Using this script is likely to delete any stored traffic data from the junction nodes.
+
 ![](screenshot.png)
 
 ![](example.gif)
