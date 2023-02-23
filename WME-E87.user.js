@@ -1,5 +1,6 @@
 // ==UserScript==
 // @name         WME E87 Inconsistent direction
+// @name:uk      WME 🇺🇦 E87 Inconsistent direction
 // @version      0.0.10
 // @description  Solves the inconsistent direction problem
 // @license      MIT License
