@@ -3,6 +3,7 @@
 // @name:uk      WME 🇺🇦 E87 Inconsistent direction
 // @version      0.0.10
 // @description  Solves the inconsistent direction problem
+// @description:uk Дозволяє вирішувати проблему різнонаправленних сегментів
 // @license      MIT License
 // @author       Anton Shevchuk
 // @namespace    https://greasyfork.org/users/227648-anton-shevchuk
