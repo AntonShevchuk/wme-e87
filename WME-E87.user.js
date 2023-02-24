@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME E87 Inconsistent direction
 // @name:uk      WME 🇺🇦 E87 Inconsistent direction
-// @version      0.0.10
+// @version      0.0.11
 // @description  Solves the inconsistent direction problem
 // @description:uk Дозволяє вирішувати проблему різнонаправленних сегментів
 // @license      MIT License
@@ -130,6 +130,12 @@
      * @return {void}
      */
     onSegment (event, element, model) {
+      // Skip for walking trails and blocked roads
+      if (model.isWalkingRoadType()
+        || model.isLockedByHigherRank()) {
+        return
+      }
+
       element
         //.parentNode.parentNode
         //.querySelector('.lanes-tab')
@@ -144,6 +150,12 @@
      * @return {void}
      */
     onSegments (event, element, models) {
+      // Skip for walking trails or locked roads
+      if (models.filter((model) => model.isWalkingRoadType() || model.isLockedByHigherRank()).length > 0) {
+        element.querySelector('div.form-group.e87')?.remove()
+        return
+      }
+
       let reversed = W.selectionManager.getReversedSegments()
 
       if (reversed.numReversed === 0) {
@@ -183,13 +195,15 @@
           buttonToReverse.disabled = true
         }
 
-        let container = document.createElement('div')
-        container.className = 'e87-container'
-        container.append(buttonToForward)
-        container.append(buttonToReverse)
+        this.container?.remove();
+
+        this.container = document.createElement('div')
+        this.container.className = 'e87-container'
+        this.container.append(buttonToForward)
+        this.container.append(buttonToReverse)
 
         $('wz-alert.sidebar-alert.inconsistent-direction-alert .sidebar-alert-content')
-          .after(container)
+          .after(this.container)
       }
     }
 
