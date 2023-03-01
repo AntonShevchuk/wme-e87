@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME E87 Inconsistent direction
 // @name:uk      WME 🇺🇦 E87 Inconsistent direction
-// @version      0.0.11
+// @version      0.0.12
 // @description  Solves the inconsistent direction problem
 // @description:uk Дозволяє вирішувати проблему різнонаправленних сегментів
 // @license      MIT License
@@ -132,7 +132,8 @@
     onSegment (event, element, model) {
       // Skip for walking trails and blocked roads
       if (model.isWalkingRoadType()
-        || model.isLockedByHigherRank()) {
+        || model.isLockedByHigherRank()
+        || !model.isGeometryEditable()) {
         return
       }
 
@@ -151,7 +152,7 @@
      */
     onSegments (event, element, models) {
       // Skip for walking trails or locked roads
-      if (models.filter((model) => model.isWalkingRoadType() || model.isLockedByHigherRank()).length > 0) {
+      if (models.filter((model) => model.isWalkingRoadType() || model.isLockedByHigherRank() || !model.isGeometryEditable()).length > 0) {
         element.querySelector('div.form-group.e87')?.remove()
         return
       }
