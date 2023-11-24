@@ -309,20 +309,20 @@
       })
 
       // invert the geometry of the segment
-      let geometry = segment.geometry.clone()
+      let geometry = segment.getOLGeometry().clone()
       geometry.components.reverse()
 
-      if (!geometry.components[0].equals(toNode.attributes.geometry)) {
+      if (!geometry.components[0].equals(toNode.getOLGeometry())) {
         let delta = { x: 0, y: 0 }
-        delta.x = toNode.attributes.geometry.x - geometry.components[0].x
-        delta.y = toNode.attributes.geometry.y - geometry.components[0].y
+        delta.x = toNode.getOLGeometry().x - geometry.components[0].x
+        delta.y = toNode.getOLGeometry().y - geometry.components[0].y
         geometry.components[0].move(delta.x, delta.y)
       }
       let points = geometry.components.length - 1
-      if (!geometry.components[points].equals(fromNode.attributes.geometry)) {
+      if (!geometry.components[points].equals(fromNode.getOLGeometry())) {
         let delta = { x: 0, y: 0 }
-        delta.x = fromNode.attributes.geometry.x - geometry.components[points].x
-        delta.y = fromNode.attributes.geometry.y - geometry.components[points].y
+        delta.x = fromNode.getOLGeometry().x - geometry.components[points].x
+        delta.y = fromNode.getOLGeometry().y - geometry.components[points].y
         geometry.components[points].move(delta.x, delta.y)
       }
 
@@ -332,7 +332,7 @@
       W.model.actionManager.add(disconnect)
 
       // update geometry of the segment
-      W.model.actionManager.add(new WazeActionUpdateSegmentGeometry(segment, segment.geometry, geometry))
+      W.model.actionManager.add(new WazeActionUpdateSegmentGeometry(segment, segment.getGeometry(), W.userscripts.toGeoJSONGeometry(geometry)))
 
       // update attributes
       W.model.actionManager.add(new WazeActionUpdateObject(segment, attributes))
