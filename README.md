@@ -12,6 +12,8 @@ Or just reverse the segment direction
 ![](reverse.png)
 
 ## Links
-Author homepage: http://anton.shevchuk.name/  
+
+Author homepage: https://anton.shevchuk.name/  
+Author pet projects: https://hohli.com/  
 Script homepage: https://github.com/AntonShevchuk/wme-e87/  
 GreasyFork: https://greasyfork.org/uk/scripts/456886-wme-e87-inconsistent-direction  
