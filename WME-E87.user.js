@@ -26,10 +26,10 @@
 /* global require */
 /* global $, jQuery */
 /* global I18n */
-/* global OpenLayers */
 /* global WMEBase */
 /* global WMEUI, WMEUIHelper, WMEUIHelperPanel, WMEUIHelperModal, WMEUIHelperTab, WMEUIHelperFieldset */
 /* global Container, Settings, SimpleCache, Tools  */
+/* global Node$1, Segment, Venue, VenueAddress, WmeSDK */
 
 (function () {
   'use strict'

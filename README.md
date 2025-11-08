@@ -15,5 +15,6 @@ Or just reverse the segment direction
 
 Author homepage: https://anton.shevchuk.name/  
 Author pet projects: https://hohli.com/  
+Support author: https://donate.hohli.com/  
 Script homepage: https://github.com/AntonShevchuk/wme-e87/  
 GreasyFork: https://greasyfork.org/uk/scripts/456886-wme-e87-inconsistent-direction  
