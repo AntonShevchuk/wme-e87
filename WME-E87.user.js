@@ -87,7 +87,7 @@
     toggle: {
       title: I18n.t(NAME).buttons.toggle,
       description: I18n.t(NAME).buttons.toggle,
-      shortcut: '',
+      shortcut: null,
     },
   }
 
