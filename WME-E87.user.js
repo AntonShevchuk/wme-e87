@@ -2,7 +2,7 @@
 // @name         WME E87 Inconsistent direction
 // @name:uk      WME 🇺🇦 E87 Inconsistent direction
 // @name:ru      WME 🇺🇦 E87 Inconsistent direction
-// @version      0.2.0
+// @version      0.2.1
 // @description  Solves the inconsistent direction problem
 // @description:uk Дозволяє вирішувати проблему різнонаправлених сегментів
 // @description:ru Позволяет решить проблему разнонаправленных сегментов
@@ -136,7 +136,7 @@
       buttons.toggle.callback = (e) => {
         e.preventDefault()
         this.getSelectedSegments().forEach(
-          segment => this.invert(segment.id)
+          segment => this.invert(segment)
         )
       }
 
@@ -170,7 +170,7 @@
      * @return {void}
      */
     onSegments (event, element, models) {
-      // Skip for walking trails or locked roads
+      // Skip walking trails or locked roads
       if (models.filter((model) =>
         this.wmeSDK.DataModel.Segments.isRoadTypeDrivable({ roadType: model.roadType })
         && this.wmeSDK.DataModel.Segments.hasPermissions({ segmentId: model.id })
@@ -244,198 +244,45 @@
         return
       }
       this.group('invert segment ' + segment.id)
-      console.log('segment', segment)
 
       let isReverse = this.wmeSDK.DataModel.Segments.getReversedSegments({
         segmentIds: [segment.id]
       }).length > 0
 
-      console.log(isReverse)
-
-      // setup and reverse attributes
-      /*
-        direction?: SegmentDirection;
-
-        geometry?: LineString;
-
-        fromLanesInfo?: null | SegmentLanesInfo;
-        toLanesInfo?: null | SegmentLanesInfo;
-
-        fwdSpeedLimit?: null | number;
-        revSpeedLimit?: null | number;
-       */
-      let geometry = segment.geometry
-
+      // setup and reverse geometry
       let attributes = {
         segmentId: segment.id,
+        geometry: {
+          type: "LineString",
+          coordinates: segment.geometry.coordinates.slice().reverse()
+        }
+      }
 
-        //areFwdTurnsVerified: segment.areRevTurnsVerified,
-        //areRevTurnsVerified: segment.areFwdTurnsVerified,
+      // reverse the Direction
+      // direction: SegmentDirection: { A_TO_B: "A_TO_B"; B_TO_A: "B_TO_A"; TWO_WAY: "TWO_WAY" }
+      if (!segment.isTwoWay) {
+        if (segment.isAtoB) {
+          attributes.direction = "B_TO_A"
+        } else {
+          attributes.direction = "A_TO_B"
+        }
+      }
 
-        fromLanesInfo: segment.toLanesInfo,
-        toLanesInfo: segment.fromLanesInfo,
+      // exchange the Speed Limits
+      if (segment.revSpeedLimit !== segment.fwdSpeedLimit) {
+        attributes.fwdSpeedLimit = segment.revSpeedLimit
+        attributes.revSpeedLimit = segment.fwdSpeedLimit
+      }
 
-        //fromNodeLanesCount:segment.toNodeLanesCount,
-        //toNodeLanesCount:segment.fromNodeLanesCount,
-
-        //fromNodeId: segment.toNodeId,
-        //toNodeId: segment.fromNodeId,
-
-        fwdSpeedLimit: segment.revSpeedLimit,
-        revSpeedLimit: segment.fwdSpeedLimit,
-
-        // direction: SegmentDirection: { A_TO_B: "A_TO_B"; B_TO_A: "B_TO_A"; TWO_WAY: "TWO_WAY" }
-        //isAtoB: segment.isBtoA,
-        //isBtoA: segment.isAtoB,
-
-        // deprecated
-        //isFwdSpeedLimitVerified: segment.isRevSpeedLimitVerified,
-        //isRevSpeedLimitVerified: segment.isFwdSpeedLimitVerified,
+      // exchange the Lanes' Info
+      if (segment.fromLanesInfo || segment.toLanesInfo) {
+        attributes.fromLanesInfo = segment.toLanesInfo
+        attributes.toLanesInfo = segment.fromLanesInfo
       }
 
       this.wmeSDK.DataModel.Segments.updateSegment(attributes)
 
-      return
-
-      //attributes.fwdDirection = segment.attributes.revDirection
-      //attributes.revDirection = segment.attributes.fwdDirection
-      // attributes.fwdTurnsLocked = segment.attributes.revTurnsLocked // ???
-      // attributes.revTurnsLocked = segment.attributes.fwdTurnsLocked // ???
-      // segment.setAttribute("revTurnsLocked", segment.attributes.fwdTurnsLocked)}
-      // segment.setAttribute("fwdTurnsLocked", segment.attributes.revTurnsLocked)}
-      //attributes.fwdMaxSpeed = segment.attributes.revMaxSpeed
-      //attributes.revMaxSpeed = segment.attributes.fwdMaxSpeed
-      //attributes.fwdMaxSpeedUnverified = segment.attributes.revMaxSpeedUnverified
-      //attributes.revMaxSpeedUnverified = segment.attributes.fwdMaxSpeedUnverified
-      //attributes.fwdLaneCount = segment.attributes.revLaneCount
-      //attributes.revLaneCount = segment.attributes.fwdLaneCount
-
-      // ???
-      /*
-      attributes.restrictions = []
-      for (let i = 0; i < segment.attributes.restrictions.length; i++) {
-        attributes.restrictions[i] = segment.attributes.restrictions[i].withReverseDirection()
-      }
-      */
-
-      this.log('attributes', attributes)
-
-      let fwdTurnsLocked = segment.attributes.fwdTurnsLocked
-      let revTurnsLocked = segment.attributes.revTurnsLocked
-
-      let fromNode = segment.getFromNode()
-      let toNode = segment.getToNode()
-
-      let onA = {}
-      let toConnections = {}
-      fromNode.getSegmentIds().forEach(segId => {
-        // incoming directions
-        if (segId !== id) {
-          onA[segId] = W.model.getTurnGraph().getTurnThroughNode(fromNode, W.model.segments.getObjectById(segId), segment)
-          onA[segId].toVertex.direction = onA[segId].toVertex.direction === 'fwd' ? 'rev' : 'fwd'
-        }
-        // outgoing directions
-        toConnections[segId] = W.model.getTurnGraph().getTurnThroughNode(fromNode, segment, W.model.segments.getObjectById(segId))
-        toConnections[segId].fromVertex.direction = toConnections[segId].fromVertex.direction === 'fwd' ? 'rev' : 'fwd'
-        // u-turn
-        if (segId === id) {
-          toConnections[segId].toVertex.direction = toConnections[segId].toVertex.direction === 'fwd' ? 'rev' : 'fwd'
-        }
-      })
-
-      let onB = {}
-      let fromConnections = {}
-      toNode.getSegmentIds().forEach(segId => {
-        if (segId !== id) {
-          onB[segId] = W.model.getTurnGraph().getTurnThroughNode(toNode, W.model.segments.getObjectById(segId), segment)
-          onB[segId].toVertex.direction = onB[segId].toVertex.direction === 'fwd' ? 'rev' : 'fwd'
-        }
-
-        fromConnections[segId] = W.model.getTurnGraph().getTurnThroughNode(toNode, segment, W.model.segments.getObjectById(segId))
-        fromConnections[segId].fromVertex.direction = fromConnections[segId].fromVertex.direction === 'fwd' ? 'rev' : 'fwd'
-
-        // u-turn
-        if (segId === id) {
-          fromConnections[segId].toVertex.direction = fromConnections[segId].toVertex.direction === 'fwd' ? 'rev' : 'fwd'
-        }
-      })
-
-      // invert the geometry of the segment
-      geometry = segment.getOLGeometry().clone()
-      geometry.components.reverse()
-
-      if (!geometry.components[0].equals(toNode.getOLGeometry())) {
-        let delta = { x: 0, y: 0 }
-        delta.x = toNode.getOLGeometry().x - geometry.components[0].x
-        delta.y = toNode.getOLGeometry().y - geometry.components[0].y
-        geometry.components[0].move(delta.x, delta.y)
-      }
-      let points = geometry.components.length - 1
-      if (!geometry.components[points].equals(fromNode.getOLGeometry())) {
-        let delta = { x: 0, y: 0 }
-        delta.x = fromNode.getOLGeometry().x - geometry.components[points].x
-        delta.y = fromNode.getOLGeometry().y - geometry.components[points].y
-        geometry.components[points].move(delta.x, delta.y)
-      }
-
-      // disconnect the segment
-      let disconnect = new WazeActionMultiAction([new WazeActionDisconnectSegment(segment, fromNode), new WazeActionDisconnectSegment(segment, toNode)])
-      disconnect._description = I18n.t('save.changes_log.actions.DisconnectSegment.default')
-      W.model.actionManager.add(disconnect)
-
-      // update geometry of the segment
-      W.model.actionManager.add(new WazeActionUpdateSegmentGeometry(segment, segment.getGeometry(), W.userscripts.toGeoJSONGeometry(geometry)))
-
-      // update attributes
-      W.model.actionManager.add(new WazeActionUpdateObject(segment, attributes))
-
-      // connect the segment
-      let connect = new WazeActionMultiAction([new WazeActionConnectSegment(toNode, segment), new WazeActionConnectSegment(fromNode, segment)])
-      connect._description = I18n.t('save.changes_log.actions.ConnectSegment.default')
-      W.model.actionManager.add(connect)
-
-      // update Turn's attributes
-      segment.setAttribute('fwdTurnsLocked', revTurnsLocked)
-      segment.setAttribute('revTurnsLocked', fwdTurnsLocked)
-      // W.model.actionManager.add(new WazeActionUpdateObject(segment, segment.getAttributes()))
-
-      // allow all connections
-      // W.model.actionManager.add(new WazeActionModifyAllConnections(segment.getToNode(), true));
-      // W.model.actionManager.add(new WazeActionModifyAllConnections(segment.getFromNode(), true));
-
-      this.applyTurns(fromConnections)
-      this.applyTurns(toConnections)
-      this.applyTurns(onA)
-      this.applyTurns(onB)
-
       this.groupEnd()
-    }
-
-    /**
-     * Apply turns for segments
-     * @param segments
-     */
-    applyTurns (segments) {
-      let actions = []
-      for (let sid in segments) {
-        let segment = segments[sid]
-        let turn
-        switch (segment.turnData.state) {
-          case 0 :
-          case 1 :
-            turn = WazeModelGraphTurnData.create()
-            turn = turn.withState(segment.turnData.state)
-              .withRestrictions(segment.turnData.restrictions)
-              .withInstructionOpcode(segment.turnData.instructionOpcode)
-              .withLanes(segment.turnData.lanes)
-
-            actions.push(new WazeModelGraphActionsSetTurn(W.model.getTurnGraph(), segment.withTurnData(turn)))
-            break
-        }
-      }
-      let multiAction = new WazeActionMultiAction(actions)
-      multiAction._description = I18n.t('save.changes_log.actions.SetTurn.update')
-      W.model.actionManager.add(multiAction)
     }
   }
 
