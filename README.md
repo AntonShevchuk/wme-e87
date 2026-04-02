@@ -1,7 +1,7 @@
-# WME 🇺🇦 E87
+# WME E87
 Solves the inconsistent direction problem
 
-> ⚠️ Using this script is likely to delete any stored traffic data from the junction nodes.
+> Using this script is likely to delete any stored traffic data from the junction nodes.
 
 ![](screenshot.png)
 
@@ -11,10 +11,22 @@ Or just reverse the segment direction
 
 ![](reverse.png)
 
+## Installation
+
+Install from [GreasyFork](https://greasyfork.org/uk/scripts/456886-wme-e87-inconsistent-direction).
+
+## Development
+
+```bash
+npm install
+npm run build    # one-off build
+npm run watch    # rebuild on changes
+```
+
 ## Links
 
-Author homepage: https://anton.shevchuk.name/  
-Author pet projects: https://hohli.com/  
-Support author: https://donate.hohli.com/  
-Script homepage: https://github.com/AntonShevchuk/wme-e87/  
-GreasyFork: https://greasyfork.org/uk/scripts/456886-wme-e87-inconsistent-direction  
+Author homepage: https://anton.shevchuk.name/
+Author pet projects: https://hohli.com/
+Support author: https://donate.hohli.com/
+Script homepage: https://github.com/AntonShevchuk/wme-e87/
+GreasyFork: https://greasyfork.org/uk/scripts/456886-wme-e87-inconsistent-direction
