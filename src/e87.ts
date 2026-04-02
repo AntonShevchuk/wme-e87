@@ -155,12 +155,26 @@ export class E87 extends WMEBase {
     }
     this.group('invert segment ' + segment.id)
 
-    // setup and reverse geometry
+    // Get node positions to snap endpoints after reversal
+    let fromNode = this.wmeSDK.DataModel.Nodes.getById({ nodeId: segment.fromNodeId })
+    let toNode = this.wmeSDK.DataModel.Nodes.getById({ nodeId: segment.toNodeId })
+
+    // Reverse geometry and snap endpoints to node positions
+    let reversedCoords = segment.geometry.coordinates.slice().reverse()
+
+    // After reversal: first point should be toNode, last point should be fromNode
+    if (toNode) {
+      reversedCoords[0] = toNode.geometry.coordinates.slice()
+    }
+    if (fromNode) {
+      reversedCoords[reversedCoords.length - 1] = fromNode.geometry.coordinates.slice()
+    }
+
     let attributes: any = {
       segmentId: segment.id,
       geometry: {
         type: "LineString",
-        coordinates: segment.geometry.coordinates.slice().reverse()
+        coordinates: reversedCoords
       }
     }
 
