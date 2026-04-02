@@ -146,62 +146,129 @@ export class E87 extends WMEBase {
 
   /**
    * Invert direction of the segment
-   * @param {Segment} segment of the segment
+   *
+   * Full reversal requires these steps:
+   * 1. Disconnect segment from both nodes
+   * 2. Reverse geometry
+   * 3. Swap direction, speed limits, lanes, restrictions
+   * 4. Reconnect segment to nodes (swapped)
+   * 5. Restore turns with flipped fwd/rev directions
+   *
+   * Currently WME SDK lacks disconnect/connect/turn-graph methods,
+   * so only geometry and attributes are updated.
+   *
+   * @param {Segment} segment
    */
-  invert (segment) {
+  invert (segment: any) {
     if (!this.wmeSDK.DataModel.Segments.hasPermissions({ segmentId: segment.id })) {
       this.log('Locked by higher rank')
       return
     }
     this.group('invert segment ' + segment.id)
 
-    // Get node positions to snap endpoints after reversal
+    // Step 1: Disconnect segment from both nodes
+    // TODO: waiting for wmeSDK.DataModel.Segments.disconnectSegment()
+    // this.disconnectFromNodes(segment)
+
+    // Step 2: Reverse geometry with node snapping
+    let reversedGeometry = this.reverseGeometry(segment)
+
+    // Step 3: Build reversed attributes
+    let attributes: any = {
+      segmentId: segment.id,
+      geometry: reversedGeometry
+    }
+
+    this.swapDirection(segment, attributes)
+    this.swapSpeedLimits(segment, attributes)
+    this.swapLanes(segment, attributes)
+
+    // Step 4: Apply changes
+    this.wmeSDK.DataModel.Segments.updateSegment(attributes)
+
+    // Step 5: Reconnect segment to nodes (swapped)
+    // TODO: waiting for wmeSDK.DataModel.Segments.connectSegment()
+    // this.connectToNodes(segment)
+
+    // Step 6: Restore turns with flipped fwd/rev directions
+    // TODO: waiting for wmeSDK.DataModel.Turns.setTurn() or similar
+    // this.restoreTurns(segment)
+
+    this.groupEnd()
+  }
+
+  /**
+   * Reverse segment geometry and snap endpoints to node positions
+   */
+  reverseGeometry (segment: any): any {
     let fromNode = this.wmeSDK.DataModel.Nodes.getById({ nodeId: segment.fromNodeId })
     let toNode = this.wmeSDK.DataModel.Nodes.getById({ nodeId: segment.toNodeId })
 
-    // Reverse geometry and snap endpoints to node positions
-    let reversedCoords = segment.geometry.coordinates.slice().reverse()
+    let coordinates = segment.geometry.coordinates.slice().reverse()
 
-    // After reversal: first point should be toNode, last point should be fromNode
+    // Snap endpoints to exact node positions
     if (toNode) {
-      reversedCoords[0] = toNode.geometry.coordinates.slice()
+      coordinates[0] = toNode.geometry.coordinates.slice()
     }
     if (fromNode) {
-      reversedCoords[reversedCoords.length - 1] = fromNode.geometry.coordinates.slice()
+      coordinates[coordinates.length - 1] = fromNode.geometry.coordinates.slice()
     }
 
-    let attributes: any = {
-      segmentId: segment.id,
-      geometry: {
-        type: "LineString",
-        coordinates: reversedCoords
-      }
-    }
+    return { type: "LineString", coordinates }
+  }
 
-    // reverse the Direction
-    // direction: SegmentDirection: { A_TO_B: "A_TO_B"; B_TO_A: "B_TO_A"; TWO_WAY: "TWO_WAY" }
+  /**
+   * Swap segment direction (A→B becomes B→A and vice versa)
+   */
+  swapDirection (segment: any, attributes: any) {
     if (!segment.isTwoWay) {
-      if (segment.isAtoB) {
-        attributes.direction = "B_TO_A"
-      } else {
-        attributes.direction = "A_TO_B"
-      }
+      attributes.direction = segment.isAtoB ? "B_TO_A" : "A_TO_B"
     }
+  }
 
-    // exchange the Speed Limits
+  /**
+   * Swap forward/reverse speed limits
+   */
+  swapSpeedLimits (segment: any, attributes: any) {
     if (segment.revSpeedLimit !== segment.fwdSpeedLimit) {
       attributes.fwdSpeedLimit = segment.revSpeedLimit
       attributes.revSpeedLimit = segment.fwdSpeedLimit
     }
+  }
 
-    // exchange the Lanes' Info
+  /**
+   * Swap forward/reverse lane info
+   */
+  swapLanes (segment: any, attributes: any) {
     if (segment.fromLanesInfo || segment.toLanesInfo) {
       attributes.fromLanesInfo = segment.toLanesInfo
       attributes.toLanesInfo = segment.fromLanesInfo
     }
-
-    this.wmeSDK.DataModel.Segments.updateSegment(attributes)
-
-    this.groupEnd()
   }
+
+  /**
+   * Disconnect segment from both nodes
+   * TODO: implement when SDK provides disconnectSegment
+   */
+  // disconnectFromNodes (segment: any) {
+  //   this.wmeSDK.DataModel.Segments.disconnectSegment({ segmentId: segment.id, nodeId: segment.fromNodeId })
+  //   this.wmeSDK.DataModel.Segments.disconnectSegment({ segmentId: segment.id, nodeId: segment.toNodeId })
+  // }
+
+  /**
+   * Reconnect segment to nodes (swapped after reversal)
+   * TODO: implement when SDK provides connectSegment
+   */
+  // connectToNodes (segment: any) {
+  //   this.wmeSDK.DataModel.Segments.connectSegment({ segmentId: segment.id, nodeId: segment.toNodeId })
+  //   this.wmeSDK.DataModel.Segments.connectSegment({ segmentId: segment.id, nodeId: segment.fromNodeId })
+  // }
+
+  /**
+   * Restore turns at both nodes with flipped fwd/rev directions
+   * TODO: implement when SDK provides turn graph manipulation
+   */
+  // restoreTurns (segment: any) {
+  //   this.log('TODO: restore turns after reversal')
+  // }
 }
