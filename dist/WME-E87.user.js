@@ -190,9 +190,6 @@
                 return;
             }
             this.group('invert segment ' + segment.id);
-            // Save turn states at both nodes before reversing
-            let fromNodeTurns = this.saveTurns(segment.fromNodeId, segment.id);
-            let toNodeTurns = this.saveTurns(segment.toNodeId, segment.id);
             // setup and reverse geometry
             let attributes = {
                 segmentId: segment.id,
@@ -222,47 +219,7 @@
                 attributes.toLanesInfo = segment.fromLanesInfo;
             }
             this.wmeSDK.DataModel.Segments.updateSegment(attributes);
-            // After geometry reversal, nodes swap: old fromNode is now toNode and vice versa
-            // Restore turns at both nodes to preserve turn states
-            this.restoreTurns(segment.toNodeId, fromNodeTurns);
-            this.restoreTurns(segment.fromNodeId, toNodeTurns);
             this.groupEnd();
-        }
-        /**
-         * Save turn states for a segment at a specific node
-         * @param nodeId
-         * @param segmentId
-         * @return Array of turn states
-         */
-        saveTurns(nodeId, segmentId) {
-            let turns = this.wmeSDK.DataModel.Turns.getTurnsThroughNode({ nodeId });
-            return turns
-                .filter((turn) => turn.fromSegmentId === segmentId || turn.toSegmentId === segmentId)
-                .map((turn) => ({
-                fromSegmentId: turn.fromSegmentId === segmentId ? segmentId : turn.fromSegmentId,
-                toSegmentId: turn.toSegmentId === segmentId ? segmentId : turn.toSegmentId,
-                isAllowed: turn.isAllowed,
-                isUTurn: turn.isUTurn,
-            }));
-        }
-        /**
-         * Restore turn states at a node after geometry reversal
-         * @param nodeId
-         * @param savedTurns
-         */
-        restoreTurns(nodeId, savedTurns) {
-            let currentTurns = this.wmeSDK.DataModel.Turns.getTurnsThroughNode({ nodeId });
-            for (let saved of savedTurns) {
-                let matching = currentTurns.find((turn) => turn.fromSegmentId === saved.fromSegmentId &&
-                    turn.toSegmentId === saved.toSegmentId);
-                if (matching && matching.isAllowed !== saved.isAllowed) {
-                    this.wmeSDK.DataModel.Turns.updateTurn({
-                        turnId: matching.id,
-                        isAllowed: saved.isAllowed
-                    });
-                    this.log('Restored turn ' + matching.id + ' to ' + (saved.isAllowed ? 'ALLOW' : 'DISALLOW'));
-                }
-            }
         }
     }
 
