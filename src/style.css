@@ -41,6 +41,10 @@ p.e87-info {
   text-align: center;
 }
 
+.e87 .button-toolbar {
+  padding: 8px;
+}
+
 #sidebar p.e87-blue {
   background-color: #0057B8;
   color: white;
