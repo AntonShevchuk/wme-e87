@@ -71,12 +71,8 @@
     class E87 extends WMEBase {
         constructor(name, settings = null, buttons = null) {
             super(name, settings);
-            this.initHelper();
             this.initTab();
             this.initPanel(buttons);
-        }
-        initHelper() {
-            this.helper = new WMEUIHelper(this.name);
         }
         initTab() {
             /** @type {WMEUIHelperTab} */
@@ -112,8 +108,7 @@
          */
         onSegment(event, element, model) {
             // Skip for walking trails and blocked roads
-            if (this.wmeSDK.DataModel.Segments.isRoadTypeDrivable({ roadType: model.roadType })
-                && this.wmeSDK.DataModel.Segments.hasPermissions({ segmentId: model.id })) {
+            if (this.canEditSegment(model)) {
                 element.prepend(this.panel.html());
             }
             else {
@@ -130,8 +125,7 @@
          */
         onSegments(event, element, models) {
             // Skip walking trails or locked roads
-            if (models.filter((model) => this.wmeSDK.DataModel.Segments.isRoadTypeDrivable({ roadType: model.roadType })
-                && this.wmeSDK.DataModel.Segments.hasPermissions({ segmentId: model.id })).length === 0) {
+            if (models.filter((model) => this.canEditSegment(model)).length === 0) {
                 // Remove the panel
                 element.querySelector('div.form-group.e87')?.remove();
                 return;
@@ -196,7 +190,7 @@
          * @param {Segment} segment
          */
         invert(segment) {
-            if (!this.wmeSDK.DataModel.Segments.hasPermissions({ segmentId: segment.id })) {
+            if (!this.canEditSegment(segment)) {
                 this.log('Locked by higher rank');
                 return;
             }
