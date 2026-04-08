@@ -59,7 +59,7 @@ export class E87 extends WMEBase {
       element.prepend(this.panel.html())
     } else {
       // Remove the panel
-      element.querySelector('div.form-group.e87')?.remove()
+      element.querySelector('div.wme-ui-panel.e87')?.remove()
     }
   }
 
@@ -76,7 +76,7 @@ export class E87 extends WMEBase {
       this.canEditSegment(model)
     ).length === 0) {
       // Remove the panel
-      element.querySelector('div.form-group.e87')?.remove()
+      element.querySelector('div.wme-ui-panel.e87')?.remove()
       return
     }
 
