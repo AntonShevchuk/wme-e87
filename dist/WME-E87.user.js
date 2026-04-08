@@ -264,9 +264,9 @@
 
     var css_248z = ".lanes-tab div.e87 {\n  border: 1px solid var(--hairline);\n  border-radius: 6px;\n  margin-bottom: 16px;\n  padding: 8px 16px 18px;\n}\n\nbutton.waze-btn.e87 {\n  background: #f2f4f7;\n  border: 1px solid #ccc;\n  margin: 2px;\n}\n\nbutton.waze-btn.e87:hover {\n  background: #ffffff;\n  transition: background-color 100ms linear;\n  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.1), inset 0 0 100px 100px rgba(255, 255, 255, 0.3);\n}\n\nbutton.waze-btn.e87:focus {\n  background: #f2f4f7;\n}\n\nbutton.e87-forward,\nbutton.e87-reverse {\n  margin: 2px 8px;\n}\n\ndiv.e87-container {\n  display: flex;\n  flex: auto;\n  justify-content: space-evenly;\n}\n\np.e87-info {\n  border-top: 1px solid #ccc;\n  color: #777;\n  font-size: x-small;\n  margin-top: 15px;\n  padding-top: 10px;\n  text-align: center;\n}\n\n.e87 .button-toolbar {\n  padding: 8px;\n}\n\n#sidebar p.e87-blue {\n  background-color: #0057B8;\n  color: white;\n  height: 32px;\n  text-align: center;\n  line-height: 32px;\n  font-size: 24px;\n  margin: 0;\n}\n\n#sidebar p.e87-yellow {\n  background-color: #FFDD00;\n  color: black;\n  height: 32px;\n  text-align: center;\n  line-height: 32px;\n  font-size: 24px;\n  margin: 0;\n}\n";
 
-    WMEUI.addTranslation(NAME, TRANSLATION);
-    WMEUI.addStyle(css_248z);
     $(document).on('bootstrap.wme', () => {
+        WMEUI.addTranslation(NAME, TRANSLATION);
+        WMEUI.addStyle(css_248z);
         new E87(NAME, SETTINGS, getButtons());
     });
 
