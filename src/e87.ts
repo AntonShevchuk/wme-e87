@@ -15,13 +15,13 @@ export class E87 extends WMEBase {
   initTab() {
     /** @type {WMEUIHelperTab} */
     let tab = this.helper.createTab(
-      I18n.t(this.name).title,
+      WMEUI.t(NAME).title,
       {
         sidebar: this.wmeSDK.Sidebar,
         image: GM_info.script.icon
       }
     )
-    tab.addText('description', I18n.t(this.name).description)
+    tab.addText('description', WMEUI.t(NAME).description)
     tab.addText('info', '<a href="' + GM_info.scriptUpdateURL + '">' + GM_info.script.name + '</a> ' + GM_info.script.version)
     tab.addText('blue', 'made in')
     tab.addText('yellow', 'Ukraine')
@@ -34,7 +34,7 @@ export class E87 extends WMEBase {
    */
   initPanel (buttons) {
     /** @type {WMEUIHelperPanel} */
-    this.panel = this.helper.createPanel(I18n.t(this.name).title)
+    this.panel = this.helper.createPanel(WMEUI.t(NAME).title)
 
     buttons.toggle.callback = (e) => {
       e.preventDefault()
@@ -101,24 +101,24 @@ export class E87 extends WMEBase {
 
       let buttonToForward = document.createElement('button')
       buttonToForward.type = 'button'
-      buttonToForward.title = I18n.t(NAME).buttons.toggle
+      buttonToForward.title = WMEUI.t(NAME).buttons.toggle
       buttonToForward.className = 'waze-btn waze-btn-small waze-btn-white e87 e87-forward'
-      buttonToForward.innerText = I18n.t(NAME).buttons.forward + ' (' + reversedIds.length + ')'
+      buttonToForward.innerText = WMEUI.t(NAME).buttons.forward + ' (' + reversedIds.length + ')'
       buttonToForward.onclick = (e) => {
         e.preventDefault()
         reversed.forEach(el => this.invert(el))
-        buttonToForward.innerText = I18n.t(NAME).buttons.forward + ' (0)'
+        buttonToForward.innerText = WMEUI.t(NAME).buttons.forward + ' (0)'
         buttonToForward.disabled = true
       }
       let buttonToReverse = document.createElement('button')
       buttonToReverse.type = 'button'
-      buttonToReverse.title = I18n.t(NAME).buttons.toggle
+      buttonToReverse.title = WMEUI.t(NAME).buttons.toggle
       buttonToReverse.className = 'waze-btn waze-btn-small waze-btn-white e87 e87-reverse'
-      buttonToReverse.innerText = I18n.t(NAME).buttons.reverse + ' (' + forwardIds.length + ')'
+      buttonToReverse.innerText = WMEUI.t(NAME).buttons.reverse + ' (' + forwardIds.length + ')'
       buttonToReverse.onclick = (e) => {
         e.preventDefault()
         forward.forEach(el => this.invert(el))
-        buttonToReverse.innerText = I18n.t(NAME).buttons.reverse + ' (0)'
+        buttonToReverse.innerText = WMEUI.t(NAME).buttons.reverse + ' (0)'
         buttonToReverse.disabled = true
       }
 
