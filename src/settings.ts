@@ -1,4 +1,4 @@
-import { NAME } from './translations'
+import { NAME } from './name'
 
 export const SETTINGS = {}
 

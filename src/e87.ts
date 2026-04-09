@@ -1,4 +1,4 @@
-import { NAME } from './translations'
+import { NAME } from './name'
 
 export class E87 extends WMEBase {
   panel: any
@@ -59,7 +59,7 @@ export class E87 extends WMEBase {
       element.prepend(this.panel.html())
     } else {
       // Remove the panel
-      element.querySelector('div.wme-ui-panel.e87')?.remove()
+      this.panel.remove()
     }
   }
 
@@ -76,7 +76,7 @@ export class E87 extends WMEBase {
       this.canEditSegment(model)
     ).length === 0) {
       // Remove the panel
-      element.querySelector('div.wme-ui-panel.e87')?.remove()
+      this.panel.remove()
       return
     }
 

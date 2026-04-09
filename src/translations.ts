@@ -1,6 +1,3 @@
-// Script name, uses as unique index
-export const NAME = 'E87'
-
 // Translations
 export const TRANSLATION = {
   'en': {
