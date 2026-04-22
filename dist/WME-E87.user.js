@@ -2,7 +2,7 @@
 // @name         WME E87 Inconsistent direction
 // @name:uk      WME 🇺🇦 E87 Inconsistent direction
 // @name:ru      WME 🇺🇦 E87 Inconsistent direction
-// @version      0.4.0
+// @version      0.4.1
 // @description  Solves the inconsistent direction problem
 // @description:uk Дозволяє вирішувати проблему різнонаправлених сегментів
 // @description:ru Позволяет решить проблему разнонаправленных сегментов
@@ -17,8 +17,8 @@
 // @grant        none
 // @require      https://update.greasyfork.org/scripts/389765/1794584/CommonUtils.js
 // @require      https://update.greasyfork.org/scripts/450160/1792042/WME-Bootstrap.js
-// @require      https://update.greasyfork.org/scripts/450221/1793261/WME-Base.js
-// @require      https://update.greasyfork.org/scripts/450320/1794414/WME-UI.js
+// @require      https://update.greasyfork.org/scripts/450221/1804989/WME-Base.js
+// @require      https://update.greasyfork.org/scripts/450320/1796236/WME-UI.js
 // ==/UserScript==
 
 (function () {
